@@ -18,14 +18,22 @@ signOut,
 onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
 const firebaseConfig = {
-apiKey: "COLE_AQUI",
-authDomain: "COLE_AQUI",
-projectId: "COLE_AQUI",
-storageBucket: "COLE_AQUI",
-messagingSenderId: "COLE_AQUI",
-appId: "COLE_AQUI"
+  apiKey: "AIzaSyDsccVCXA7q7ldAlW7EHh6d9yWP92gX16E",
+  authDomain: "king-of-stree.firebaseapp.com",
+  projectId: "king-of-stree",
+  storageBucket: "king-of-stree.firebasestorage.app",
+  messagingSenderId: "21535856779",
+  appId: "1:21535856779:web:0644a278e7de61b14d9c8e"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
