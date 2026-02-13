@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King of Street - Sistema de Estoque</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Configuração do Banco de Dados -->
+    <div id="configModal" class="config-modal">
+        <div class="config-content">
+            <div class="config-header">
+                <i class="fas fa-database"></i>
+                <h2>Configuração do Banco de Dados</h2>
+            </div>
+            <p class="config-info">Para que o sistema funcione em todos os dispositivos, configure seu banco de dados Supabase:</p>
+            <form id="configForm">
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> Supabase URL</label>
+                    <input type="text" id="supabaseUrl" placeholder="https://seu-projeto.supabase.co" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-key"></i> Supabase API Key (anon/public)</label>
+                    <input type="text" id="supabaseKey" placeholder="sua-chave-publica" required>
+                </div>
+                <button type="submit" class="btn-config">
+                    <i class="fas fa-check"></i> Conectar Banco de Dados
+                </button>
+            </form>
+            <div class="config-help">
+                <p><strong>Não tem conta Supabase?</strong></p>
+                <ol>
+                    <li>Acesse <a href="https://supabase.com" target="_blank">supabase.com</a> e crie uma conta grátis</li>
+                    <li>Crie um novo projeto</li>
+                    <li>Vá em Settings → API</li>
+                    <li>Copie a "URL" e a "anon public" key</li>
+                    <li>Cole aqui e clique em Conectar</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <div class="logo-container">
+                    <img src="logo.png" alt="King of Street" class="logo">
+                    <div class="brand-text">
+                        <h1>KING OF STREET</h1>
+                        <span class="subtitle">Sistema de Controle</span>
+                    </div>
+                </div>
+                <div class="header-status">
+                    <div class="status-indicator">
+                        <i class="fas fa-circle status-icon"></i>
+                        <span id="statusText">Conectando...</span>
+                    </div>
+                </div>
+            </div>
+            <nav>
+                <button class="nav-btn active" data-section="estoque">
+                    <i class="fas fa-boxes"></i>
+                    <span>Estoque</span>
+                </button>
+                <button class="nav-btn" data-section="vendas">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Vendas</span>
+                </button>
+                <button class="nav-btn" data-section="historico">
+                    <i class="fas fa-history"></i>
+                    <span>Histórico</span>
+                </button>
+                <button class="nav-btn" data-section="relatorios">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Relatórios</span>
+                </button>
+            </nav>
+        </header>
+
+        <!-- Seção de Estoque -->
+        <section id="estoque" class="section active">
+            <div class="section-header">
+                <div>
+                    <h2><i class="fas fa-boxes"></i> Controle de Estoque</h2>
+                    <p class="section-subtitle">Gerencie todos os produtos da loja</p>
+                </div>
+                <button class="btn-primary" id="btnAddProduto">
+                    <i class="fas fa-plus"></i> Adicionar Produto
+                </button>
+            </div>
+
+            <div class="filters">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchProduto" placeholder="Buscar produto...">
+                </div>
+                <select id="filterCategoria">
+                    <option value="">📦 Todas as categorias</option>
+                    <option value="calçados">👟 Calçados</option>
+                    <option value="camisas">👕 Camisas</option>
+                    <option value="bonés">🧢 Bonés</option>
+                    <option value="óculos">🕶️ Óculos</option>
+                    <option value="bermudas">🩳 Bermudas</option>
+                    <option value="shorts">🩳 Shorts</option>
+                    <option value="calças">👖 Calças</option>
+                </select>
+            </div>
+
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Produtos</span>
+                        <span class="stat-value" id="totalProdutos">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Itens em Estoque</span>
+                        <span class="stat-value" id="totalItens">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Estoque Baixo</span>
+                        <span class="stat-value" id="totalBaixo">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Valor Total</span>
+                        <span class="stat-value" id="valorEstoque">R$ 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="tabelaEstoque">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Produto</th>
+                            <th>Categoria</th>
+                            <th>Tamanho</th>
+                            <th>Cor</th>
+                            <th>Quantidade</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabelaEstoque">
+                        <!-- Produtos serão inseridos aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Seção de Vendas -->
+        <section id="vendas" class="section">
+            <div class="section-header">
+                <h2>Registrar Venda</h2>
+            </div>
+
+            <div class="venda-form">
+                <div class="form-group">
+                    <label>Selecionar Produto</label>
+                    <select id="vendaProduto" required>
+                        <option value="">Escolha um produto</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quantidade</label>
+                        <input type="number" id="vendaQuantidade" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Unitário</label>
+                        <input type="text" id="vendaPreco" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Desconto (%)</label>
+                    <input type="number" id="vendaDesconto" min="0" max="100" value="0">
+                </div>
+
+                <div class="total-venda">
+                    <h3>Total: R$ <span id="totalVenda">0,00</span></h3>
+                </div>
+
+                <button class="btn-success" id="btnFinalizarVenda">Finalizar Venda</button>
+            </div>
+
+            <div class="vendas-hoje">
+                <h3>Vendas de Hoje</h3>
+                <div id="listaVendasHoje"></div>
+                <div class="total-dia">
+                    <strong>Total do Dia: R$ <span id="totalDia">0,00</span></strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Histórico -->
+        <section id="historico" class="section">
+            <div class="section-header">
+                <h2>Histórico de Vendas</h2>
+            </div>
+
+            <div class="filters">
+                <input type="date" id="filterDataInicio">
+                <input type="date" id="filterDataFim">
+                <select id="filterProdutoHistorico">
+                    <option value="">Todos os produtos</option>
+                </select>
+                <button class="btn-secondary" id="btnFiltrarHistorico">Filtrar</button>
+            </div>
+
+            <div class="table-container">
+                <table id="tabelaHistorico">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Produto</th>
+                            <th>Quantidade</th>
+                            <th>Preço Unit.</th>
+                            <th>Desconto</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabelaHistorico">
+                        <!-- Histórico será inserido aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Seção de Relatórios -->
+        <section id="relatorios" class="section">
+            <div class="section-header">
+                <h2>Relatórios</h2>
+            </div>
+
+            <div class="relatorios-grid">
+                <div class="relatorio-card">
+                    <h3>Vendas por Mês</h3>
+                    <select id="mesRelatorio">
+                        <option value="">Selecione o mês</option>
+                    </select>
+                    <div id="vendasMes" class="relatorio-content"></div>
+                </div>
+
+                <div class="relatorio-card">
+                    <h3>Produtos Mais Vendidos</h3>
+                    <div id="produtosMaisVendidos" class="relatorio-content"></div>
+                </div>
+
+                <div class="relatorio-card">
+                    <h3>Estoque Baixo</h3>
+                    <div id="estoqueBaixo" class="relatorio-content"></div>
+                </div>
+
+                <div class="relatorio-card">
+                    <h3>Resumo Geral</h3>
+                    <div id="resumoGeral" class="relatorio-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>Desenvolvido por Ykaro</p>
+        </footer>
+    </div>
+
+    <!-- Modal Adicionar/Editar Produto -->
+    <div id="modalProduto" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Adicionar Produto</h2>
+            <form id="formProduto">
+                <div class="form-group">
+                    <label>Nome do Produto *</label>
+                    <input type="text" id="produtoNome" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Categoria *</label>
+                        <select id="produtoCategoria" required>
+                            <option value="">Selecione</option>
+                            <option value="calçados">Calçados</option>
+                            <option value="camisas">Camisas</option>
+                            <option value="bonés">Bonés</option>
+                            <option value="óculos">Óculos</option>
+                            <option value="bermudas">Bermudas</option>
+                            <option value="shorts">Shorts</option>
+                            <option value="calças">Calças</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tamanho *</label>
+                        <input type="text" id="produtoTamanho" placeholder="Ex: M, 42, Único" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cor *</label>
+                        <input type="text" id="produtoCor" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantidade *</label>
+                        <input type="number" id="produtoQuantidade" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Preço (R$) *</label>
+                    <input type="text" id="produtoPreco" placeholder="0,00" required>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">Salvar</button>
+                    <button type="button" class="btn-secondary" id="btnCancelar">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
