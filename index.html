@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>King of Street - Sistema</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<header class="header">
+    <img src="logo-main.jpg" class="logo">
+    <h1>KING OF STREET</h1>
+    <p>Sistema de Controle de Estoque</p>
+</header>
+
+<main class="container">
+
+<section class="card">
+
+<h2>Adicionar Produto</h2>
+
+<form id="formProduto" class="form">
+<input id="produtoNome" placeholder="Nome do produto" required>
+<input id="produtoCategoria" placeholder="Categoria" required>
+<input id="produtoTamanho" placeholder="Tamanho" required>
+<input id="produtoCor" placeholder="Cor" required>
+<input id="produtoQuantidade" type="number" placeholder="Quantidade" required>
+<input id="produtoPreco" type="number" placeholder="Preço" required>
+
+<button type="submit" class="btn">Salvar Produto</button>
+
+</form>
+
+</section>
+
+<section class="card">
+
+<h2>Estoque</h2>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Produto</th>
+<th>Categoria</th>
+<th>Tamanho</th>
+<th>Cor</th>
+<th>Qtd</th>
+<th>Preço</th>
+<th>Ação</th>
+</tr>
+</thead>
+
+<tbody id="corpoTabelaEstoque"></tbody>
+
+</table>
+
+</section>
+
+<section class="card">
+
+<h2>Registrar Venda</h2>
+
+<select id="vendaProduto"></select>
+
+<input type="number" id="vendaQuantidade" value="1">
+
+<button id="btnFinalizarVenda" class="btn">Finalizar Venda</button>
+
+</section>
+
+</main>
+
+<footer class="footer">
+KING OF STREET © 2026
+</footer>
+
+<script type="module" src="script.js"></script>
+
+</body>
+</html>
