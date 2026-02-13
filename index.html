@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>King of Street - Admin</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div id="loginPage" class="center-screen">
+    <div class="card login-card">
+        <h2>KING OF STREET</h2>
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginSenha" placeholder="Senha">
+        <button id="btnLogin" class="btn">Entrar</button>
+        <button id="btnRegistrar" class="btn secondary">Criar Conta</button>
+    </div>
+</div>
+
+<div id="app" style="display:none;">
+
+<header class="header">
+    <h1>King of Street - Painel Admin</h1>
+    <button id="btnLogout" class="btn danger">Sair</button>
+</header>
+
+<main class="container">
+
+<section class="card dashboard">
+    <h2>Dashboard</h2>
+    <div class="stats">
+        <div class="stat-box">
+            <h3 id="totalProdutos">0</h3>
+            <p>Produtos</p>
+        </div>
+        <div class="stat-box">
+            <h3 id="totalVendas">0</h3>
+            <p>Vendas</p>
+        </div>
+        <div class="stat-box">
+            <h3 id="faturamentoTotal">R$ 0</h3>
+            <p>Faturamento</p>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+<h2>Adicionar Produto</h2>
+<form id="formProduto">
+<input id="produtoNome" placeholder="Nome" required>
+<input id="produtoCategoria" placeholder="Categoria" required>
+<input id="produtoQuantidade" type="number" placeholder="Quantidade" required>
+<input id="produtoPreco" type="number" placeholder="Preço" required>
+<button type="submit" class="btn">Salvar</button>
+</form>
+</section>
+
+<section class="card">
+<h2>Registrar Venda (Baixa Inteligente)</h2>
+<select id="vendaProduto"></select>
+<input type="number" id="vendaQuantidade" placeholder="Quantidade" value="1">
+<button id="btnVenda" class="btn">Registrar Venda</button>
+</section>
+
+<section class="card">
+<h2>Estoque</h2>
+<table>
+<thead>
+<tr>
+<th>Produto</th>
+<th>Qtd</th>
+<th>Preço</th>
+<th>Status</th>
+<th>Ação</th>
+</tr>
+</thead>
+<tbody id="tabelaEstoque"></tbody>
+</table>
+</section>
+
+</main>
+
+<footer class="footer">
+Feito por Ykaro
+</footer>
+
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
