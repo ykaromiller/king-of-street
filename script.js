@@ -1,4 +1,3 @@
-// Proteção contra carregamento duplo
 if (!window.firebaseAppInitialized) {
 
 window.firebaseAppInitialized = true;
@@ -8,16 +7,7 @@ import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js").then(async (
 const firestoreModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
 const authModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
 
-const {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  updateDoc,
-  serverTimestamp
-} = firestoreModule;
+const { getFirestore } = firestoreModule;
 
 const {
   getAuth,
@@ -28,12 +18,7 @@ const {
 } = authModule;
 
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
+// CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDsccVCXA7q7ldAlW7EHh6d9yWP92gX16E",
   authDomain: "king-of-stree.firebaseapp.com",
@@ -44,13 +29,11 @@ const firebaseConfig = {
 };
 
 
-// INICIALIZA
 const appFirebase = initializeApp(firebaseConfig);
 const db = getFirestore(appFirebase);
 const auth = getAuth(appFirebase);
 
 
-// ELEMENTOS
 const loginPage = document.getElementById("loginPage");
 const appPage = document.getElementById("app");
 
@@ -62,7 +45,6 @@ const loginEmail = document.getElementById("loginEmail");
 const loginSenha = document.getElementById("loginSenha");
 
 
-// LOGIN
 onAuthStateChanged(auth, (user) => {
 
 if (user) {
@@ -80,7 +62,6 @@ appPage.style.display = "none";
 });
 
 
-// BOTÕES
 btnLogin.onclick = async () => {
 
 try {
