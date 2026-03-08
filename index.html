@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👑 King of Street - Gerenciador de Estoque</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #d4af37;
+      --bg-dark: #0a0a0a;
+      --bg-card: #1a1a1a;
+      --bg-hover: #252525;
+      --border: #333;
+      --text: #f2f2f2;
+      --text-muted: #999;
+      --danger: #ff6b6b;
+      --success: #51cf66;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-item {
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-hover);
+      border-left-color: var(--primary);
+    }
+
+    .nav-item.active {
+      background: var(--bg-hover);
+      border-left-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Main Content */
+    .main {
+      margin-left: 280px;
+      flex: 1;
+      padding: 30px;
+    }
+
+    .header {
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.9em;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text-muted);
+      font-size: 0.9em;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    }
+
+    /* Buttons */
+    button {
+      padding: 10px 20px;
+      background: var(--primary);
+      color: var(--bg-dark);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--bg-hover);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: var(--bg-dark);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    thead {
+      background: var(--bg-hover);
+    }
+
+    th {
+      padding: 12px;
+      text-align: left;
+      color: var(--primary);
+      font-weight: 600;
+      border-bottom: 2px solid var(--primary);
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:hover {
+      background: var(--bg-hover);
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .product-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .product-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 200px;
+      background: var(--bg-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 48px;
+    }
+
+    .product-info {
+      padding: 15px;
+    }
+
+    .product-name {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .product-meta {
+      font-size: 0.85em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .product-price {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .product-quantity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .quantity-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
+    .quantity-badge.low {
+      background: rgba(255, 107, 107, 0.2);
+      color: var(--danger);
+    }
+
+    .quantity-badge.ok {
+      background: rgba(81, 207, 102, 0.2);
+      color: var(--success);
+    }
+
+    /* Search & Filter */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 2000;
+      max-width: 400px;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-success {
+      background: rgba(81, 207, 102, 0.2);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .alert-error {
+      background: rgba(255, 107, 107, 0.2);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    .spinner {
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 15px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+
+      .search-bar {
+        flex-direction: column;
+      }
+
+      .search-bar input {
+        min-width: auto;
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .audit-entry {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.88em;
+    }
+    .audit-entry:last-child { border-bottom: none; }
+    .audit-icon {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1em; flex-shrink: 0;
+    }
+    .audit-icon.create  { background: rgba(81,207,102,0.15); }
+    .audit-icon.edit    { background: rgba(212,175,55,0.15); }
+    .audit-icon.delete  { background: rgba(255,107,107,0.15); }
+    .audit-icon.entry   { background: rgba(81,207,102,0.15); }
+    .audit-icon.exit    { background: rgba(255,107,107,0.15); }
+    .audit-body { flex: 1; }
+    .audit-action { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .audit-detail { color: var(--text-muted); line-height: 1.5; }
+    .audit-meta { color: var(--text-muted); font-size: 0.85em; margin-top: 3px; }
+    .audit-user { color: var(--primary); font-weight: 600; }
+    .audit-empty { text-align:center; color: var(--text-muted); padding: 40px; }
+
+
+    /* ── LOGIN ── */
+    #login-screen {
+      position: fixed; inset: 0;
+      background: var(--bg-dark);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+    }
+    #login-screen.hidden { display: none; }
+
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      animation: fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .login-logo {
+      display: flex; justify-content: center; margin-bottom: 28px;
+    }
+    .login-logo img { width: 120px; }
+    .login-title {
+      text-align: center; font-size: 1.1em;
+      color: var(--text-muted); margin-bottom: 28px;
+    }
+    .login-error {
+      background: rgba(255,107,107,0.15);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      border-radius: 6px; padding: 10px 14px;
+      font-size: 0.88em; margin-bottom: 14px; display: none;
+    }
+    .login-box button { width: 100%; margin-top: 8px; padding: 12px; font-size: 1em; }
+
+    /* ── USERS MODAL ── */
+    .users-modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 5000;
+      align-items: center; justify-content: center;
+    }
+    .users-modal-overlay.active { display: flex; }
+    .users-modal {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 28px;
+      width: 90%; max-width: 520px; max-height: 85vh; overflow-y: auto;
+    }
+    .users-modal h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.2em; }
+    .user-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.9em;
+    }
+    .user-row:last-child { border-bottom: none; }
+    .user-email { flex: 1; word-break: break-all; }
+    .role-badge {
+      padding: 3px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600;
+    }
+    .role-owner { background: rgba(212,175,55,0.2); color: var(--primary); }
+    .role-user  { background: rgba(81,207,102,0.2);  color: var(--success); }
+    .role-pending { background: rgba(255,107,107,0.2); color: var(--danger); }
+    .sidebar-footer {
+      position: absolute; bottom: 20px; left: 20px; right: 20px;
+    }
+    .current-user-info {
+      font-size: 0.78em; color: var(--text-muted);
+      word-break: break-all; margin-bottom: 10px;
+    }
+    .btn-logout {
+      width: 100%; background: transparent;
+      border: 1px solid var(--border); color: var(--text-muted);
+      padding: 8px; font-size: 0.85em; border-radius: 6px;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="data:image/png;base64,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" alt="King of Street">
+      </div>
+      <div class="login-title">Acesse sua conta para continuar</div>
+      <div class="login-error" id="login-error"></div>
+      <div class="form-group">
+        <label>Usuário</label>
+        <input type="text" id="login-username" placeholder="nome de usuário" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button id="login-btn" onclick="doLogin()">Entrar</button>
+    </div>
+  </div>
+
+  <!-- USERS MANAGER MODAL (owner only) -->
+  <div class="users-modal-overlay" id="users-modal">
+    <div class="users-modal">
+      <h2>👥 Gerenciar Usuários</h2>
+      <div style="margin-bottom:20px;">
+        <div class="card-title" style="font-size:0.95em;margin-bottom:12px;">Adicionar novo usuário</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <input type="text" id="new-user-username" placeholder="nome de usuário" style="flex:1;min-width:150px;">
+          <input type="password" id="new-user-pass" placeholder="Senha (mín. 6)" style="width:140px;">
+          <button onclick="createUser()" style="white-space:nowrap;">➕ Criar</button>
+        </div>
+        <div id="create-user-msg" style="font-size:0.85em;margin-top:4px;"></div>
+      </div>
+      <div id="users-list">
+        <div style="color:var(--text-muted);font-size:0.9em;">Carregando...</div>
+      </div>
+      <div style="margin-top:20px;text-align:right;">
+        <button class="btn-secondary" onclick="closeUsersModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="app-container" style="display:none;">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo" style="justify-content:center;padding:15px 0 25px 0;"><img src="data:image/png;base64,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" style="width:140px;height:auto;object-fit:contain;" alt="King of Street"></div>
+      <div class="nav-item active" onclick="showPage('dashboard')">📊 Dashboard</div>
+      <div class="nav-item" onclick="showPage('products')">📦 Produtos</div>
+      <div class="nav-item" onclick="showPage('movements')">📈 Movimentações</div>
+      <div class="nav-item" onclick="showPage('history')">📜 Histórico</div>
+      <div class="nav-item" onclick="showPage('financeiro')">💰 Financeiro</div>
+      <div class="nav-item" onclick="showPage('auditoria')">🔍 Auditoria</div>
+
+      <div class="sidebar-footer">
+        <div class="current-user-info" id="sidebar-user-email"></div>
+        <div id="manage-users-btn" style="display:none;margin-bottom:8px;">
+          <button onclick="openUsersModal()" style="width:100%;background:rgba(212,175,55,0.1);border:1px solid var(--primary);color:var(--primary);font-size:0.85em;padding:8px;">👥 Gerenciar Usuários</button>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">🚪 Sair</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div id="alert" class="alert"></div>
+
+      <!-- Dashboard Page -->
+      <div id="dashboard-page" class="page">
+        <div class="header">
+          <h1>Dashboard</h1>
+          <p>Visão geral do seu estoque</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total de Produtos</div>
+            <div class="stat-value" id="stat-total-products">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total em Estoque</div>
+            <div class="stat-value" id="stat-total-items">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Valor Total</div>
+            <div class="stat-value" id="stat-total-value">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Estoque Baixo</div>
+            <div class="stat-value" id="stat-low-stock">-</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Itens com Estoque Baixo</div>
+          </div>
+          <table id="low-stock-table">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Preço</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Products Page -->
+      <div id="products-page" class="page hidden">
+        <div class="header">
+          <h1>Produtos</h1>
+          <p>Gerenciar seu inventário</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Produtos Cadastrados</div>
+            <button onclick="openProductModal()">+ Novo Produto</button>
+          </div>
+
+          <div class="search-bar">
+            <input type="text" id="search-products" placeholder="Buscar por nome..." onkeyup="filterProducts()">
+            <select id="filter-category" onchange="filterProducts()">
+              <option value="">Todas as categorias</option>
+            </select>
+            <select id="filter-size" onchange="filterProducts()">
+              <option value="">Todos os tamanhos</option>
+            </select>
+            <select id="filter-color" onchange="filterProducts()">
+              <option value="">Todas as cores</option>
+            </select>
+          </div>
+
+          <div class="grid" id="products-grid"></div>
+        </div>
+      </div>
+
+      <!-- Movements Page -->
+      <div id="movements-page" class="page hidden">
+        <div class="header">
+          <h1>Movimentações</h1>
+          <p>Registrar entrada/saída de produtos</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Nova Movimentação</div>
+          </div>
+
+          <div class="form-group">
+            <label>Produto</label>
+            <select id="movement-product">
+              <option value="">Selecione um produto</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="movement-type" onchange="toggleSaleFields()">
+              <option value="entry">Entrada</option>
+              <option value="exit">Saída</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Quantidade</label>
+            <input type="number" id="movement-quantity" min="1" value="1">
+          </div>
+
+          <div id="sale-fields" style="display:none;">
+            <div class="form-group">
+              <label>Preço de Venda Unitário (R$)</label>
+              <input type="number" id="movement-sale-price" step="0.01" placeholder="0.00" oninput="calcSalePreview()">
+            </div>
+            <div class="form-group">
+              <label>Desconto (%)</label>
+              <input type="number" id="movement-discount" min="0" max="100" value="0" oninput="calcSalePreview()">
+            </div>
+            <div id="sale-preview" style="background:var(--bg-hover);border-radius:6px;padding:12px;margin-bottom:10px;font-size:0.9em;display:none;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted)">Preço original:</span><span id="prev-original">-</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted)">Desconto:</span><span id="prev-discount" style="color:var(--danger)">-</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted)">Preço final/un:</span><span id="prev-final" style="color:var(--primary);font-weight:bold;">-</span></div>
+              <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px;margin-top:4px;"><span style="color:var(--text-muted)">Total venda:</span><span id="prev-total" style="color:var(--success);font-weight:bold;font-size:1.1em;">-</span></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted)">Lucro estimado:</span><span id="prev-profit" style="font-weight:bold;">-</span></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Observações</label>
+            <textarea id="movement-notes" rows="3"></textarea>
+          </div>
+          <button onclick="addMovement()">Registrar Movimentação</button>
+        </div>
+      </div>
+
+      <!-- History Page -->
+      <div id="history-page" class="page hidden">
+        <div class="header">
+          <h1>Histórico</h1>
+          <p>Todas as movimentações registradas</p>
+        </div>
+
+        <div class="card">
+          <table id="history-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Produto</th>
+                <th>Tipo</th>
+                <th>Quantidade</th>
+                <th>Observações</th>
+              <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+      <!-- Financeiro Page -->
+      <div id="financeiro-page" class="page hidden">
+        <div class="header" style="display:flex;align-items:center;gap:20px;">
+          <img src="data:image/jpeg;base64,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" style="width:60px;height:60px;object-fit:contain;border-radius:8px;filter:drop-shadow(0 0 6px rgba(212,175,55,0.5));" alt="Logo">
+          <div>
+            <h1>Financeiro</h1>
+            <p>Receitas, custos, lucros e perdas</p>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card" style="border-left-color:#51cf66;">
+            <div class="stat-label">💰 Receita Total</div>
+            <div class="stat-value" id="fin-receita" style="color:#51cf66;">R$ 0,00</div>
+          </div>
+          <div class="stat-card" style="border-left-color:#ff6b6b;">
+            <div class="stat-label">📦 Custo Total</div>
+            <div class="stat-value" id="fin-custo" style="color:#ff6b6b;">R$ 0,00</div>
+          </div>
+          <div class="stat-card" style="border-left-color:#d4af37;">
+            <div class="stat-label">📈 Lucro Líquido</div>
+            <div class="stat-value" id="fin-lucro">R$ 0,00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">🏷️ Descontos Dados</div>
+            <div class="stat-value" id="fin-descontos" style="color:#ff9f43;">R$ 0,00</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Resumo por Produto</div>
+          </div>
+          <table id="fin-table">
+            <thead><tr><th>Produto</th><th>Qtd Vendida</th><th>Receita</th><th>Custo</th><th>Desconto</th><th>Lucro</th><th>Margem</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧾 Histórico de Vendas</div>
+          </div>
+          <table id="sales-table">
+            <thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Preço/un</th><th>Desconto</th><th>Total</th><th>Lucro</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- Auditoria Page -->
+      <div id="auditoria-page" class="page hidden">
+        <div class="header">
+          <h1>Auditoria</h1>
+          <p>Registro completo de todas as ações realizadas</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔍 Log de Atividades</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <select id="audit-filter-user" onchange="filterAudit()" style="width:auto;">
+                <option value="">Todos os usuários</option>
+              </select>
+              <select id="audit-filter-action" onchange="filterAudit()" style="width:auto;">
+                <option value="">Todas as ações</option>
+                <option value="produto_criado">Produto criado</option>
+                <option value="produto_editado">Produto editado</option>
+                <option value="produto_deletado">Produto deletado</option>
+                <option value="movimento_entrada">Entrada de estoque</option>
+                <option value="movimento_saida">Saída de estoque</option>
+                <option value="lancamento_apagado">Lançamento apagado</option>
+              </select>
+            </div>
+          </div>
+          <div id="audit-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Product Modal -->
+  <div id="product-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header" id="modal-title">Novo Produto</div>
+      <input type="hidden" id="modal-edit-id" value="">
+
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" id="modal-name" placeholder="Ex: Camiseta Preta">
+      </div>
+
+      <div class="form-group">
+        <label>Categoria</label>
+        <input type="text" id="modal-category" placeholder="Ex: Camisa">
+      </div>
+
+      <div class="form-group">
+        <label>Tamanho</label>
+        <select id="modal-size">
+          <option value="">Selecione</option>
+          <option value="PP">PP</option>
+          <option value="P">P</option>
+          <option value="M">M</option>
+          <option value="G">G</option>
+          <option value="GG">GG</option>
+          <option value="XG">XG</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Cor</label>
+        <input type="text" id="modal-color" placeholder="Ex: Preto">
+      </div>
+
+      <div class="form-group">
+        <label>Preço Unitário</label>
+        <input type="number" id="modal-price" step="0.01" placeholder="0.00">
+      </div>
+
+      <div class="form-group">
+        <label>Quantidade Inicial</label>
+        <input type="number" id="modal-quantity" min="0" value="0">
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeProductModal()">Cancelar</button>
+        <button id="save-product-btn" onclick="saveProduct()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCHDBdUi1-ze8fF-eGaWqBo-z0F_ARdGI0",
+      authDomain: "kiing-of-street.firebaseapp.com",
+      projectId: "kiing-of-street",
+      storageBucket: "kiing-of-street.firebasestorage.app",
+      messagingSenderId: "779262130062",
+      appId: "1:779262130062:web:a1de619cc1547d2b8196df",
+      databaseURL: "https://kiing-of-street-default-rtdb.firebaseio.com/"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+
+    const auth = firebase.auth();
+    const OWNER_EMAIL = ''; // será definido no primeiro acesso
+
+    let currentUser = null;
+    let currentRole = null;
+
+    // ── AUTH STATE ────────────────────────────────────────────────────────────
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        showLoginScreen();
+        return;
+      }
+      // Check if user is approved in DB
+      const snap = await db.ref('users/' + user.uid).once('value');
+      const userData = snap.val();
+
+      if (!userData || (!userData.approved && userData.role !== 'owner')) {
+        showLoginError('Acesso não autorizado. Aguarde aprovação do dono.');
+        auth.signOut();
+        return;
+      }
+
+      currentUser = user;
+      currentRole = userData.role;
+
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-container').style.display = 'flex';
+      const uSnap = await db.ref('users/' + user.uid + '/username').once('value');
+      const uname = uSnap.val() || user.email.split('@')[0];
+      document.getElementById('sidebar-user-email').textContent = '👤 ' + uname;
+
+      if (currentRole === 'owner') {
+        document.getElementById('manage-users-btn').style.display = 'block';
+      }
+
+      loadData();
+    });
+
+    function showLoginScreen() {
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('app-container').style.display = 'none';
+    }
+
+    function showLoginError(msg) {
+      const el = document.getElementById('login-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function usernameToEmail(username) {
+      // Internally Firebase needs an email format — user never sees this
+      return username.toLowerCase().trim().replace(/[^a-z0-9]/g, '_') + '@kingofstreet.app';
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('login-username').value.trim();
+      const pass     = document.getElementById('login-password').value;
+      const btn      = document.getElementById('login-btn');
+      const errEl    = document.getElementById('login-error');
+
+      errEl.style.display = 'none';
+      if (!username || !pass) { showLoginError('Preencha usuário e senha.'); return; }
+
+      btn.disabled = true; btn.textContent = 'Entrando...';
+
+      try {
+        const fakeEmail = usernameToEmail(username);
+        await auth.signInWithEmailAndPassword(fakeEmail, pass);
+      } catch (e) {
+        const msgs = {
+          'auth/user-not-found':     'Usuário não encontrado.',
+          'auth/wrong-password':     'Senha incorreta.',
+          'auth/invalid-credential': 'Usuário ou senha incorretos.',
+          'auth/too-many-requests':  'Muitas tentativas. Tente mais tarde.'
+        };
+        showLoginError(msgs[e.code] || 'Usuário ou senha incorretos.');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Entrar';
+      }
+    }
+
+    async function doLogout() {
+      await auth.signOut();
+      currentUser = null; currentRole = null;
+      productsData = []; movementsData = [];
+      document.getElementById('sidebar-user-email').textContent = '';
+      document.getElementById('manage-users-btn').style.display = 'none';
+    }
+
+    // ── USER MANAGEMENT (owner only) ──────────────────────────────────────────
+    function openUsersModal() {
+      document.getElementById('users-modal').classList.add('active');
+      loadUsersList();
+    }
+
+    function closeUsersModal() {
+      document.getElementById('users-modal').classList.remove('active');
+    }
+
+    async function loadUsersList() {
+      const listEl = document.getElementById('users-list');
+      listEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.9em;">Carregando...</div>';
+      const snap = await db.ref('users').once('value');
+      const users = snap.val() || {};
+      const rows = Object.entries(users).map(([uid, u]) => {
+        const roleBadge = u.role === 'owner'
+          ? '<span class="role-badge role-owner">Dono</span>'
+          : u.approved
+            ? '<span class="role-badge role-user">Aprovado</span>'
+            : '<span class="role-badge role-pending">Pendente</span>';
+        const actions = (u.role !== 'owner') ? `
+          ${!u.approved ? `<button onclick="approveUser('${uid}')" style="padding:4px 10px;font-size:0.8em;background:var(--success);color:#000;">✔ Aprovar</button>` : ''}
+          <button onclick="revokeUser('${uid}')" style="padding:4px 10px;font-size:0.8em;" class="btn-danger">✖ Revogar</button>
+        ` : '';
+        return `<div class="user-row">
+          <div class="user-email">${u.username || u.email}</div>
+          ${roleBadge}
+          ${actions}
+        </div>`;
+      });
+      listEl.innerHTML = rows.length ? rows.join('') : '<div style="color:var(--text-muted);font-size:0.9em;">Nenhum usuário.</div>';
+    }
+
+    async function createUser() {
+      const username = document.getElementById('new-user-username').value.trim();
+      const pass     = document.getElementById('new-user-pass').value;
+      const msgEl    = document.getElementById('create-user-msg');
+      msgEl.style.color = 'var(--text-muted)';
+      msgEl.textContent = 'Criando...';
+
+      if (!username || username.length < 3) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = 'Nome de usuário muito curto (mín. 3 caracteres).';
+        return;
+      }
+      if (pass.length < 6) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = 'Senha muito curta (mín. 6 caracteres).';
+        return;
+      }
+
+      try {
+        const fakeEmail = usernameToEmail(username);
+        // Use secondary app so owner stays logged in
+        const secondary = firebase.initializeApp(firebaseConfig, 'sec_' + Date.now());
+        const secAuth = secondary.auth();
+        const cred = await secAuth.createUserWithEmailAndPassword(fakeEmail, pass);
+        const uid = cred.user.uid;
+        await secAuth.signOut();
+        await secondary.delete();
+
+        await db.ref('users/' + uid).set({
+          username,
+          email: fakeEmail,
+          role: 'user',
+          approved: false,
+          createdAt: new Date().toISOString()
+        });
+
+        msgEl.style.color = 'var(--success)';
+        msgEl.textContent = '✔ Usuário "' + username + '" criado! Aprove o acesso abaixo.';
+        document.getElementById('new-user-username').value = '';
+        document.getElementById('new-user-pass').value = '';
+        loadUsersList();
+      } catch(e) {
+        msgEl.style.color = 'var(--danger)';
+        const msgs = {
+          'auth/email-already-in-use': 'Esse nome de usuário já existe.',
+          'auth/weak-password': 'Senha muito fraca.'
+        };
+        msgEl.textContent = msgs[e.code] || e.message;
+      }
+    }
+
+    async function approveUser(uid) {
+      await db.ref('users/' + uid + '/approved').set(true);
+      showAlert('Usuário aprovado!');
+      loadUsersList();
+    }
+
+    async function revokeUser(uid) {
+      if (!confirm('Revogar acesso deste usuário?')) return;
+      await db.ref('users/' + uid + '/approved').set(false);
+      showAlert('Acesso revogado.', 'error');
+      loadUsersList();
+    }
+
+    // ── SETUP OWNER on first login ─────────────────────────────────────────────
+    // SETUP: Create owner entry in Realtime Database manually.
+    // Use username format: owner username → fake email = username@kingofstreet.app
+    // In Firebase DB set: users/OWNER_UID = { username:'seu_usuario', email:'seu_usuario@kingofstreet.app', role:'owner', approved:true }
+
+
+    let auditData = [];
+
+    function getUsername() {
+      const el = document.getElementById('sidebar-user-email');
+      return el ? el.textContent.replace('👤 ', '').trim() : 'desconhecido';
+    }
+
+    function logAudit(action, detail, extra = {}) {
+      const entry = {
+        id: Date.now(),
+        action,
+        detail,
+        username: getUsername(),
+        uid: currentUser ? currentUser.uid : '',
+        date: new Date().toISOString(),
+        ...extra
+      };
+      db.ref('audit/' + entry.id).set(entry);
+    }
+
+    function loadAuditData() {
+      db.ref('audit').on('value', snapshot => {
+        auditData = snapshot.val() ? Object.values(snapshot.val()) : [];
+        auditData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // update filter dropdown users
+        const users = [...new Set(auditData.map(e => e.username))];
+        const sel = document.getElementById('audit-filter-user');
+        if (sel) {
+          const cur = sel.value;
+          sel.innerHTML = '<option value="">Todos os usuários</option>' +
+            users.map(u => `<option value="${u}" ${u===cur?'selected':''}>${u}</option>`).join('');
+        }
+      });
+    }
+
+    function filterAudit() {
+      const user   = document.getElementById('audit-filter-user').value;
+      const action = document.getElementById('audit-filter-action').value;
+      const filtered = auditData.filter(e =>
+        (!user   || e.username === user) &&
+        (!action || e.action === action)
+      );
+      renderAudit(filtered);
+    }
+
+    function renderAudit(list) {
+      const el = document.getElementById('audit-list');
+      if (!list.length) {
+        el.innerHTML = '<div class="audit-empty">Nenhum registro encontrado.</div>';
+        return;
+      }
+      const iconMap = {
+        produto_criado:    { cls: 'create', icon: '➕' },
+        produto_editado:   { cls: 'edit',   icon: '✏️' },
+        produto_deletado:  { cls: 'delete', icon: '🗑️' },
+        movimento_entrada: { cls: 'entry',  icon: '📦' },
+        movimento_saida:   { cls: 'exit',   icon: '🛒' },
+        lancamento_apagado:{ cls: 'delete', icon: '↩️' },
+      };
+      el.innerHTML = list.map(e => {
+        const im = iconMap[e.action] || { cls: 'edit', icon: '•' };
+        const date = new Date(e.date).toLocaleString('pt-BR');
+        return `<div class="audit-entry">
+          <div class="audit-icon ${im.cls}">${im.icon}</div>
+          <div class="audit-body">
+            <div class="audit-action">${e.detail}</div>
+            <div class="audit-meta"><span class="audit-user">${e.username}</span> · ${date}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function loadAuditPage() {
+      filterAudit();
+      renderAudit(auditData);
+    }
+
+    let productsData = [];
+    let movementsData = [];
+
+    // Load data from Firebase
+    function loadData() {
+      db.ref('products').on('value', snapshot => {
+        productsData = snapshot.val() ? Object.values(snapshot.val()) : [];
+        updateDashboard();
+        updateFilters();
+        updateMovementSelect();
+      });
+
+      db.ref('movements').on('value', snapshot => {
+        movementsData = snapshot.val() ? Object.values(snapshot.val()) : [];
+      });
+    }
+
+    // UI Functions
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`${page}-page`).classList.remove('hidden');
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (page === 'dashboard') updateDashboard();
+      if (page === 'products') filterProducts();
+      if (page === 'history') loadHistory();
+      if (page === 'financeiro') loadFinanceiro();
+      if (page === 'auditoria') loadAuditPage();
+    }
+
+    function showAlert(message, type = 'success') {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = `alert show alert-${type}`;
+      setTimeout(() => alert.classList.remove('show'), 3000);
+    }
+
+    // Dashboard
+    function updateDashboard() {
+      const stats = calculateStats(productsData);
+
+      document.getElementById('stat-total-products').textContent = stats.totalProducts;
+      document.getElementById('stat-total-items').textContent = stats.totalItems;
+      document.getElementById('stat-total-value').textContent = `R$ ${stats.totalValue.toFixed(2)}`;
+      document.getElementById('stat-low-stock').textContent = stats.lowStockCount;
+
+      const tbody = document.querySelector('#low-stock-table tbody');
+      tbody.innerHTML = stats.lowStockItems.map(item => `
+        <tr>
+          <td>${item.name}</td>
+          <td><span class="quantity-badge low">${item.quantity} un</span></td>
+          <td>R$ ${item.unitPrice.toFixed(2)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function calculateStats(products) {
+      return {
+        totalProducts: products.length,
+        totalItems: products.reduce((sum, p) => sum + (p.quantity || 0), 0),
+        totalValue: products.reduce((sum, p) => sum + ((p.unitPrice || 0) * (p.quantity || 0)), 0),
+        lowStockCount: products.filter(p => (p.quantity || 0) < 5).length,
+        lowStockItems: products.filter(p => (p.quantity || 0) < 5)
+      };
+    }
+
+    // Products
+    function openProductModal() {
+      document.getElementById('product-modal').classList.add('active');
+    }
+
+    function closeProductModal() {
+      document.getElementById('product-modal').classList.remove('active');
+      document.getElementById('modal-title').textContent = 'Novo Produto';
+      document.getElementById('modal-edit-id').value = '';
+      document.getElementById('modal-name').value = '';
+      document.getElementById('modal-category').value = '';
+      document.getElementById('modal-size').value = '';
+      document.getElementById('modal-color').value = '';
+      document.getElementById('modal-price').value = '';
+      document.getElementById('modal-quantity').value = '0';
+      const btn = document.getElementById('save-product-btn');
+      btn.disabled = false;
+      btn.textContent = '💾 Salvar';
+    }
+
+
+    async function saveProduct() {
+      const btn = document.getElementById('save-product-btn');
+      const editId = document.getElementById('modal-edit-id').value;
+
+      const name = document.getElementById('modal-name').value.trim();
+      const category = document.getElementById('modal-category').value.trim();
+      const size = document.getElementById('modal-size').value;
+      const color = document.getElementById('modal-color').value.trim();
+      const price = parseFloat(document.getElementById('modal-price').value);
+      const quantity = parseInt(document.getElementById('modal-quantity').value) || 0;
+
+      if (!name || !category || !size || !color || isNaN(price) || price <= 0) {
+        showAlert('Preencha todos os campos corretamente', 'error');
+        return;
+      }
+
+      const productId = editId ? parseInt(editId) : Date.now();
+
+      const product = {
+        id: productId,
+        name,
+        category,
+        size,
+        color,
+        unitPrice: price,
+        quantity,
+        createdAt: editId
+          ? (productsData.find(p => p.id === parseInt(editId))?.createdAt || new Date().toISOString())
+          : new Date().toISOString()
+      };
+
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+
+      try {
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Tempo limite atingido. Verifique sua conexao ou as regras do Firebase.')), 10000)
+        );
+
+        const save = db.ref('products/' + productId).set(product);
+
+        await Promise.race([save, timeout]);
+
+        if (editId) {
+          logAudit('produto_editado', `Editou produto: ${name} (${size} · ${color} · R$ ${price.toFixed(2)})`, { productId });
+          showAlert('Produto atualizado com sucesso!');
+        } else {
+          logAudit('produto_criado', `Criou produto: ${name} (${size} · ${color} · R$ ${price.toFixed(2)}, qtd: ${quantity})`, { productId });
+          showAlert('Produto adicionado com sucesso!');
+        }
+        closeProductModal();
+      } catch (err) {
+        console.error('Erro ao salvar:', err);
+        showAlert('Erro: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Salvar';
+      }
+    }
+
+
+    function updateFilters() {
+      const categories = [...new Set(productsData.map(p => p.category))];
+      const sizes = [...new Set(productsData.map(p => p.size))];
+      const colors = [...new Set(productsData.map(p => p.color))];
+
+      const categorySelect = document.getElementById('filter-category');
+      const sizeSelect = document.getElementById('filter-size');
+      const colorSelect = document.getElementById('filter-color');
+
+      categorySelect.innerHTML = '<option value="">Todas as categorias</option>' + 
+        categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      sizeSelect.innerHTML = '<option value="">Todos os tamanhos</option>' + 
+        sizes.map(s => `<option value="${s}">${s}</option>`).join('');
+      colorSelect.innerHTML = '<option value="">Todas as cores</option>' + 
+        colors.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function filterProducts() {
+      const search = document.getElementById('search-products').value.toLowerCase();
+      const category = document.getElementById('filter-category').value;
+      const size = document.getElementById('filter-size').value;
+      const color = document.getElementById('filter-color').value;
+
+      const filtered = productsData.filter(p =>
+        p.name.toLowerCase().includes(search) &&
+        (!category || p.category === category) &&
+        (!size || p.size === size) &&
+        (!color || p.color === color)
+      );
+
+      const grid = document.getElementById('products-grid');
+      grid.innerHTML = filtered.map(product => `
+        <div class="product-card">
+          <div class="product-image">👕</div>
+          <div class="product-info">
+            <div class="product-name">${product.name}</div>
+            <div class="product-meta">${product.category} • ${product.size} • ${product.color}</div>
+            <div class="product-price">R$ ${product.unitPrice.toFixed(2)}</div>
+            <div class="product-quantity">
+              <span class="quantity-badge ${(product.quantity || 0) < 5 ? 'low' : 'ok'}">
+                ${product.quantity || 0} un
+              </span>
+            </div>
+            <div class="btn-group">
+              <button class="btn-secondary" onclick="editProduct(${product.id})">Editar</button>
+              <button class="btn-danger" onclick="deleteProduct(${product.id})">Deletar</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function deleteProduct(id) {
+      const product = productsData.find(p => p.id === id);
+      if (confirm('Tem certeza que deseja deletar este produto?')) {
+        db.ref(`products/${id}`).remove(error => {
+          if (error) {
+            showAlert('Erro ao deletar produto', 'error');
+          } else {
+            logAudit('produto_deletado', `Deletou produto: ${product ? product.name : id}`, { productId: id });
+            showAlert('Produto deletado com sucesso!');
+          }
+        });
+      }
+    }
+
+    function editProduct(id) {
+      const product = productsData.find(p => p.id === id);
+      if (product) {
+        document.getElementById('modal-title').textContent = 'Editar Produto';
+        document.getElementById('modal-edit-id').value = product.id;
+        document.getElementById('modal-name').value = product.name;
+        document.getElementById('modal-category').value = product.category;
+        document.getElementById('modal-size').value = product.size;
+        document.getElementById('modal-color').value = product.color;
+        document.getElementById('modal-price').value = product.unitPrice;
+        document.getElementById('modal-quantity').value = product.quantity;
+        const btn = document.getElementById('save-product-btn');
+        btn.disabled = false;
+        btn.textContent = '💾 Salvar';
+        openProductModal();
+      }
+    }
+
+    // Movements
+    function addMovement() {
+      const productId = parseInt(document.getElementById('movement-product').value);
+      const type = document.getElementById('movement-type').value;
+      const quantity = parseInt(document.getElementById('movement-quantity').value);
+      const notes = document.getElementById('movement-notes').value;
+
+      if (!productId || !quantity) {
+        showAlert('Selecione um produto e quantidade', 'error');
+        return;
+      }
+
+      const product = productsData.find(p => p.id === productId);
+      if (!product) {
+        showAlert('Produto não encontrado', 'error');
+        return;
+      }
+
+      if (type === 'exit' && product.quantity < quantity) {
+        showAlert('Quantidade insuficiente em estoque', 'error');
+        return;
+      }
+
+      const newQuantity = product.quantity + (type === 'entry' ? quantity : -quantity);
+      
+      db.ref(`products/${productId}/quantity`).set(newQuantity);
+
+      const salePrice = type === 'exit' ? (parseFloat(document.getElementById('movement-sale-price').value) || product.unitPrice) : null;
+      const discount = type === 'exit' ? (parseFloat(document.getElementById('movement-discount').value) || 0) : null;
+      const movement = {
+        id: Date.now(),
+        productId,
+        type,
+        quantity,
+        notes,
+        salePrice: salePrice,
+        discount: discount,
+        date: new Date().toISOString()
+      };
+
+      db.ref(`movements/${movement.id}`).set(movement, error => {
+        if (error) {
+          showAlert('Erro ao registrar movimentação', 'error');
+        } else {
+          if (type === 'entry') {
+            logAudit('movimento_entrada', `Entrada de ${quantity}x ${product.name}`, { productId, quantity });
+          } else {
+            const sp = movement.salePrice || product.unitPrice;
+            const disc = movement.discount || 0;
+            const final = sp * (1 - disc/100);
+            logAudit('movimento_saida', `Saída de ${quantity}x ${product.name} · R$ ${final.toFixed(2)}/un${disc > 0 ? ' (desc. '+disc+'%)' : ''}`, { productId, quantity });
+          }
+          showAlert('Movimentação registrada com sucesso!');
+          document.getElementById('movement-product').value = '';
+          document.getElementById('movement-quantity').value = '1';
+          document.getElementById('movement-notes').value = '';
+          document.getElementById('movement-sale-price').value = '';
+          document.getElementById('movement-discount').value = '0';
+          document.getElementById('sale-preview').style.display = 'none';
+          toggleSaleFields();
+        }
+      });
+    }
+
+
+    function deleteMovement(id, productId, type, quantity) {
+      if (!confirm('Apagar este lançamento? O estoque será revertido automaticamente.')) return;
+      const product = productsData.find(p => p.id === productId);
+      const updates = {};
+      updates['movements/' + id] = null;
+      if (product) {
+        // Reverse the stock change
+        const revert = type === 'entry' ? -quantity : quantity;
+        const newQty = Math.max(0, (product.quantity || 0) + revert);
+        updates['products/' + productId + '/quantity'] = newQty;
+      }
+      const prod = productsData.find(p => p.id === productId);
+      db.ref().update(updates).then(() => {
+        logAudit('lancamento_apagado', `Apagou lançamento: ${type === 'entry' ? 'Entrada' : 'Saída'} de ${quantity}x ${prod ? prod.name : productId}`, { productId, quantity });
+        showAlert('Lançamento apagado e estoque revertido!');
+        loadHistory();
+      }).catch(err => {
+        showAlert('Erro ao apagar: ' + err.message, 'error');
+      });
+    }
+
+    function updateMovementSelect() {
+      const select = document.getElementById('movement-product');
+      select.innerHTML = '<option value="">Selecione um produto</option>' +
+        productsData.map(p => `<option value="${p.id}">${p.name} (${p.quantity || 0} un)</option>`).join('');
+    }
+
+    // History
+    function loadHistory() {
+      const tbody = document.querySelector('#history-table tbody');
+      tbody.innerHTML = movementsData.map(m => {
+        const product = productsData.find(p => p.id === m.productId);
+        return `
+          <tr>
+            <td>${new Date(m.date).toLocaleString('pt-BR')}</td>
+            <td>${product?.name || 'Produto deletado'}</td>
+            <td>${m.type === 'entry' ? '🟢 Entrada' : '🔴 Saída'}</td>
+            <td>${m.quantity}</td>
+            <td>${m.notes || '-'}</td>
+            <td><button class="btn-danger" style="padding:4px 10px;font-size:0.8em;" onclick="deleteMovement(${m.id}, ${m.productId}, '${m.type}', ${m.quantity})">🗑️</button></td>
+          </tr>
+        `;
+      }).reverse().join('');
+    }
+
+
+
+
+    function toggleSaleFields() {
+      const type = document.getElementById('movement-type').value;
+      const sf = document.getElementById('sale-fields');
+      sf.style.display = type === 'exit' ? 'block' : 'none';
+      if (type !== 'exit') document.getElementById('sale-preview').style.display = 'none';
+    }
+
+    function calcSalePreview() {
+      const productId = parseInt(document.getElementById('movement-product').value);
+      const qty = parseInt(document.getElementById('movement-quantity').value) || 0;
+      const salePrice = parseFloat(document.getElementById('movement-sale-price').value) || 0;
+      const discount = parseFloat(document.getElementById('movement-discount').value) || 0;
+      const product = productsData.find(p => p.id === productId);
+      if (!salePrice || !qty) { document.getElementById('sale-preview').style.display = 'none'; return; }
+      const discountAmt = salePrice * (discount / 100);
+      const finalPrice = salePrice - discountAmt;
+      const totalSale = finalPrice * qty;
+      const cost = product ? (product.unitPrice * qty) : 0;
+      const profit = totalSale - cost;
+      document.getElementById('prev-original').textContent = 'R$ ' + (salePrice * qty).toFixed(2);
+      document.getElementById('prev-discount').textContent = '-R$ ' + (discountAmt * qty).toFixed(2) + ' (' + discount + '%)';
+      document.getElementById('prev-final').textContent = 'R$ ' + finalPrice.toFixed(2);
+      document.getElementById('prev-total').textContent = 'R$ ' + totalSale.toFixed(2);
+      const profitEl = document.getElementById('prev-profit');
+      profitEl.textContent = 'R$ ' + profit.toFixed(2);
+      profitEl.style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+      document.getElementById('sale-preview').style.display = 'block';
+    }
+
+    function loadFinanceiro() {
+      const sales = movementsData.filter(m => m.type === 'exit');
+      let totalReceita = 0, totalCusto = 0, totalDesconto = 0;
+      const byProduct = {};
+      sales.forEach(m => {
+        const product = productsData.find(p => p.id === m.productId);
+        const costUnit = product ? product.unitPrice : 0;
+        const salePrice = m.salePrice || costUnit;
+        const discount = m.discount || 0;
+        const discountAmt = salePrice * (discount / 100);
+        const finalPrice = salePrice - discountAmt;
+        const totalSale = finalPrice * m.quantity;
+        const totalCostItem = costUnit * m.quantity;
+        const profit = totalSale - totalCostItem;
+        const discountTotal = discountAmt * m.quantity;
+        totalReceita += totalSale;
+        totalCusto += totalCostItem;
+        totalDesconto += discountTotal;
+        const key = m.productId;
+        if (!byProduct[key]) byProduct[key] = { name: product ? product.name : 'Deletado', qtd: 0, receita: 0, custo: 0, desconto: 0, lucro: 0 };
+        byProduct[key].qtd += m.quantity;
+        byProduct[key].receita += totalSale;
+        byProduct[key].custo += totalCostItem;
+        byProduct[key].desconto += discountTotal;
+        byProduct[key].lucro += profit;
+      });
+      const lucro = totalReceita - totalCusto;
+      document.getElementById('fin-receita').textContent = 'R$ ' + totalReceita.toFixed(2);
+      document.getElementById('fin-custo').textContent = 'R$ ' + totalCusto.toFixed(2);
+      const lucroEl = document.getElementById('fin-lucro');
+      lucroEl.textContent = 'R$ ' + lucro.toFixed(2);
+      lucroEl.style.color = lucro >= 0 ? 'var(--success)' : 'var(--danger)';
+      document.getElementById('fin-descontos').textContent = 'R$ ' + totalDesconto.toFixed(2);
+      const tbody = document.querySelector('#fin-table tbody');
+      const rows = Object.values(byProduct).map(p => {
+        const margem = p.receita > 0 ? ((p.lucro / p.receita) * 100).toFixed(1) : '0.0';
+        const color = p.lucro >= 0 ? 'var(--success)' : 'var(--danger)';
+        return '<tr><td>' + p.name + '</td><td>' + p.qtd + '</td><td>R$ ' + p.receita.toFixed(2) + '</td><td>R$ ' + p.custo.toFixed(2) + '</td><td style="color:var(--danger)">-R$ ' + p.desconto.toFixed(2) + '</td><td style="color:' + color + ';font-weight:bold;">R$ ' + p.lucro.toFixed(2) + '</td><td style="color:' + color + '">' + margem + '%</td></tr>';
+      });
+      tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Nenhuma venda registrada</td></tr>';
+      const tbody2 = document.querySelector('#sales-table tbody');
+      const rows2 = [...sales].reverse().map(m => {
+        const product = productsData.find(p => p.id === m.productId);
+        const costUnit = product ? product.unitPrice : 0;
+        const salePrice = m.salePrice || costUnit;
+        const discount = m.discount || 0;
+        const discountAmt = salePrice * (discount / 100);
+        const finalPrice = salePrice - discountAmt;
+        const totalSale = finalPrice * m.quantity;
+        const profit = totalSale - (costUnit * m.quantity);
+        const color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+        return '<tr><td>' + new Date(m.date).toLocaleString('pt-BR') + '</td><td>' + (product ? product.name : 'Deletado') + '</td><td>' + m.quantity + '</td><td>R$ ' + finalPrice.toFixed(2) + '</td><td style="color:var(--danger)">' + (discount > 0 ? discount + '%' : '-') + '</td><td>R$ ' + totalSale.toFixed(2) + '</td><td style="color:' + color + ';font-weight:bold;">R$ ' + profit.toFixed(2) + '</td></tr>';
+      });
+      tbody2.innerHTML = rows2.length ? rows2.join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Nenhuma venda registrada</td></tr>';
+    }
+
+    // Initialize
+    loadData();
+    loadAuditData();
+  </script>
+</body>
+</html>
